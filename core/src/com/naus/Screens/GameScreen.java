@@ -28,6 +28,14 @@ public class GameScreen implements Screen{
     long lastAsteroideTime;
     int vides = 3;
     int score = 0;
+    int spawnFrequency = 1000000000;
+
+    // Initialize directions and timer
+    float directionX = MathUtils.random(-1f, 1f); // Generates a random float between -1 and 1
+    float directionY = MathUtils.random(-1f, 1f); // Generates a random float between -1 and 1
+    float timer = 0;
+
+    int estrellaMoveSpeed = 100;
 
     private final int WIDTH = AssetManager.getWIDTH();
     private final int HEIGHT = AssetManager.getHEIGHT();
@@ -68,32 +76,33 @@ public class GameScreen implements Screen{
             case 1: // top
                 asteroide.x = MathUtils.random(0, WIDTH - asteroide.width);
                 asteroide.y = HEIGHT;
-                asteroide.vx = 0;
+                asteroide.vx = MathUtils.random(-200, 200);
                 asteroide.vy = -200;
                 break;
             case 2: // right
                 asteroide.x = WIDTH;
                 asteroide.y = MathUtils.random(0, HEIGHT - asteroide.height);
                 asteroide.vx = -200;
-                asteroide.vy = 0;
+                asteroide.vy = MathUtils.random(-200, 200);
                 break;
             case 3: // bottom
                 asteroide.x = MathUtils.random(0, WIDTH - asteroide.width);
                 asteroide.y = 0;
-                asteroide.vx = 0;
+                asteroide.vx = MathUtils.random(-200, 200);
                 asteroide.vy = 200;
                 break;
             case 4: // left
                 asteroide.x = 0;
                 asteroide.y = MathUtils.random(0, HEIGHT - asteroide.height);
                 asteroide.vx = 200;
-                asteroide.vy = 0;
+                asteroide.vy = MathUtils.random(-200, 200);
                 break;
         }
 
         asteroides.add(asteroide);
         lastAsteroideTime = TimeUtils.nanoTime();
     }
+
 
 
     @Override
@@ -110,6 +119,7 @@ public class GameScreen implements Screen{
         game.batch.setProjectionMatrix(camera.combined);
 
         game.batch.begin();
+        game.batch.draw(AssetManager.background, 0, 0, WIDTH, HEIGHT);
         game.font.draw(game.batch, "Vides restants: " + vides, 0, 20);
         game.font.draw(game.batch, "Puntuacio: " + score, 0, HEIGHT - 20);
         game.batch.draw(AssetManager.nauImage, nau.x, nau.y, nau.width, nau.height);
@@ -141,8 +151,7 @@ public class GameScreen implements Screen{
         if(nau.y > HEIGHT - nau.height) nau.y = HEIGHT - nau.height;
 
         //Asteroides spawn frequency
-
-        if(TimeUtils.nanoTime() - lastAsteroideTime > 1000000000) spawnAsteroide();
+        if(TimeUtils.nanoTime() - lastAsteroideTime > spawnFrequency) spawnAsteroide();
 
         //Asteroides movement
         for(AsteroideRectangle asteroide : asteroides){
@@ -161,9 +170,31 @@ public class GameScreen implements Screen{
         //Estrella spawn
         if(estrella == null) spawnEstrella();
         if(estrella.overlaps(nau)){
+            //Increase of score and spawn frequency (1% faster every star)
+            spawnFrequency -= 10000000;
             estrella = null;
             score++;
         }
+
+        //Estralla movement
+        if(estrella != null){
+            timer += Gdx.graphics.getDeltaTime();
+
+            if(timer > 2){ // Change direction every 2 seconds
+                directionX = MathUtils.random(-1f, 1f);
+                directionY = MathUtils.random(-1f, 1f);
+                timer = 0;
+            }
+
+            estrella.x += estrellaMoveSpeed * directionX * Gdx.graphics.getDeltaTime();
+            estrella.y += estrellaMoveSpeed * directionY * Gdx.graphics.getDeltaTime();
+
+            if(estrella.x > WIDTH) estrella.x = 0;
+            if(estrella.x < 0) estrella.x = WIDTH;
+            if(estrella.y > HEIGHT) estrella.y = 0;
+            if(estrella.y < 0) estrella.y = HEIGHT;
+        }
+
     }
 
     @Override
