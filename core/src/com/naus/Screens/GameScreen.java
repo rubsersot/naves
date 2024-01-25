@@ -45,6 +45,8 @@ public class GameScreen implements Screen{
 
         AssetManager.load();
 
+        AssetManager.bg_music.setLooping(true);
+
         camera = new OrthographicCamera();
         camera.setToOrtho(false, WIDTH, HEIGHT);
 
@@ -107,7 +109,7 @@ public class GameScreen implements Screen{
 
     @Override
     public void show() {
-
+        AssetManager.bg_music.play();
     }
 
     @Override
@@ -159,6 +161,7 @@ public class GameScreen implements Screen{
             asteroide.y += asteroide.vy * Gdx.graphics.getDeltaTime();
             if(asteroide.overlaps(nau)){
                 asteroides.removeValue(asteroide, true);
+                AssetManager.explosionSound.play();
                 vides--;
                 if(vides == 0){
                     game.setScreen(new GameOverScreen(game, score));
